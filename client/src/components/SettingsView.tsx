@@ -3,7 +3,14 @@ import { Database, ShieldCheck, User, Terminal, HardDrive } from 'lucide-react';
 
 interface SettingsViewProps {
   token: string | null;
-  user: { name: string; email: string; role: string } | null;
+  user: { 
+    name: string; 
+    email: string; 
+    role: string; 
+    avatar_url?: string | null; 
+    github_username?: string | null; 
+    status?: string;
+  } | null;
 }
 
 export default function SettingsView({ token, user }: SettingsViewProps) {
@@ -121,18 +128,68 @@ export default function SettingsView({ token, user }: SettingsViewProps) {
         </div>
 
         {user && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <span style={{ width: '120px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Full Name:</span>
-              <span style={{ fontSize: '14px', fontWeight: 600 }}>{user.name}</span>
-            </div>
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <span style={{ width: '120px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Email:</span>
-              <span style={{ fontSize: '14px' }}>{user.email}</span>
-            </div>
-            <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-              <span style={{ width: '120px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Role Privilege:</span>
-              <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', fontWeight: 'bold' }}>{user.role}</span>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '24px', flexWrap: 'wrap' }}>
+            {/* Avatar block */}
+            {user.avatar_url ? (
+              <img 
+                src={user.avatar_url} 
+                alt={user.name}
+                style={{
+                  width: '64px',
+                  height: '64px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  border: '1px solid var(--border-color)',
+                  backgroundColor: 'var(--bg-secondary)',
+                  flexShrink: 0
+                }}
+              />
+            ) : (
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--text-primary)',
+                color: 'var(--bg-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                fontWeight: 'bold',
+                fontFamily: 'var(--font-mono)',
+                flexShrink: 0
+              }}>
+                {user.name ? user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, minWidth: '200px' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                <span style={{ width: '150px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Full Name:</span>
+                <span style={{ fontSize: '14px', fontWeight: 600 }}>{user.name}</span>
+              </div>
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                <span style={{ width: '150px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Email:</span>
+                <span style={{ fontSize: '14px' }}>{user.email}</span>
+              </div>
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                <span style={{ width: '150px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Role Privilege:</span>
+                <span style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', fontWeight: 'bold' }}>{user.role}</span>
+              </div>
+              {user.github_username && (
+                <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+                  <span style={{ width: '150px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>GitHub Username:</span>
+                  <span style={{ fontSize: '14px', fontFamily: 'var(--font-mono)' }}>@{user.github_username}</span>
+                </div>
+              )}
+              {user.status && (
+                <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px', alignItems: 'center' }}>
+                  <span style={{ width: '150px', fontSize: '13px', fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)' }}>Status:</span>
+                  <span className={`badge ${user.status === 'Active' ? 'badge-active' : 'badge-pending'}`} style={{ fontSize: '11px', padding: '2px 8px' }}>
+                    {user.status}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

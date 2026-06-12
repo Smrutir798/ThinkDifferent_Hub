@@ -14,7 +14,13 @@ interface SidebarProps {
   onViewChange: (view: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (collapsed: boolean) => void;
-  user: { name: string; email: string; role: string } | null;
+  user: { 
+    name: string; 
+    email: string; 
+    role: string; 
+    avatar_url?: string | null; 
+    github_username?: string | null; 
+  } | null;
   onLogout: () => void;
 }
 
@@ -190,49 +196,128 @@ export default function Sidebar({
             backgroundColor: 'var(--bg-secondary)',
             overflow: 'hidden'
           }}>
-            {!isCollapsed && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
-                <span style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: 'var(--text-primary)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {user.name}
-                </span>
-                <span style={{
-                  fontSize: '11px',
-                  fontFamily: 'var(--font-mono)',
-                  color: 'var(--text-secondary)',
-                  textTransform: 'uppercase'
-                }}>
-                  {user.role}
-                </span>
+            {!isCollapsed ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', flex: 1 }}>
+                {user.avatar_url ? (
+                  <img 
+                    src={user.avatar_url} 
+                    alt={user.name}
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '1px solid var(--border-color)',
+                      backgroundColor: 'var(--bg-primary)',
+                      flexShrink: 0
+                    }}
+                  />
+                ) : (
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--text-primary)',
+                    color: 'var(--bg-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    fontFamily: 'var(--font-mono)',
+                    flexShrink: 0
+                  }}>
+                    {user.name ? user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
+                  </div>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden', flex: 1 }}>
+                  <span style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: 'var(--text-primary)',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {user.name}
+                  </span>
+                  <span style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--text-secondary)',
+                    textTransform: 'uppercase'
+                  }}>
+                    {user.role}
+                  </span>
+                </div>
               </div>
+            ) : (
+              user.avatar_url ? (
+                <img 
+                  src={user.avatar_url} 
+                  alt={user.name}
+                  title={`${user.name} (${user.role}) - Click to logout`}
+                  onClick={onLogout}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--bg-primary)',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                />
+              ) : (
+                <div 
+                  title={`${user.name} (${user.role}) - Click to logout`}
+                  onClick={onLogout}
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: 'var(--text-primary)',
+                    color: 'var(--bg-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold',
+                    fontFamily: 'var(--font-mono)',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                >
+                  {user.name ? user.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() : '?'}
+                </div>
+              )
             )}
 
-            <button
-              onClick={onLogout}
-              title="Log Out"
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                padding: '4px',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'color var(--transition-fast)'
-              }}
-              onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-              onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
-            >
-              <LogOut size={16} />
-            </button>
+            {!isCollapsed && (
+              <button
+                onClick={onLogout}
+                title="Log Out"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color var(--transition-fast)',
+                  marginLeft: '4px',
+                  flexShrink: 0
+                }}
+                onMouseOver={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-secondary)'}
+              >
+                <LogOut size={16} />
+              </button>
+            )}
           </div>
         )}
       </div>
