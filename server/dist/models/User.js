@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema({
         required: true,
         default: 'Owner',
     },
+    product: {
+        type: String,
+        default: null,
+    },
     createdAt: {
         type: Date,
         default: Date.now,

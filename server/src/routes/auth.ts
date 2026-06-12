@@ -50,10 +50,21 @@ router.post('/register', async (req: Request, res: Response) => {
     }
 
     const userId = (newUser as any).id || (newUser as any)._id;
+    const avatarUrl = (newUser as any).avatar_url || (newUser as any).avatarUrl || null;
+    const githubUsername = (newUser as any).github_username || (newUser as any).githubUsername || null;
+    const status = (newUser as any).status || 'Active';
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: userId, email: newUser.email, role: newUser.role, name: newUser.name },
+      { 
+        id: userId, 
+        email: newUser.email, 
+        role: newUser.role, 
+        name: newUser.name,
+        avatar_url: avatarUrl,
+        github_username: githubUsername,
+        status: status
+      },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -64,7 +75,11 @@ router.post('/register', async (req: Request, res: Response) => {
         id: userId,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role
+        role: newUser.role,
+        avatar_url: avatarUrl,
+        github_username: githubUsername,
+        status: status,
+        createdAt: (newUser as any).created_at || (newUser as any).createdAt
       }
     });
   } catch (err: any) {
@@ -97,10 +112,21 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const userId = (user as any).id || (user as any)._id;
+    const avatarUrl = (user as any).avatar_url || (user as any).avatarUrl || null;
+    const githubUsername = (user as any).github_username || (user as any).githubUsername || null;
+    const status = (user as any).status || 'Active';
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: userId, email: user.email, role: user.role, name: user.name },
+      { 
+        id: userId, 
+        email: user.email, 
+        role: user.role, 
+        name: user.name,
+        avatar_url: avatarUrl,
+        github_username: githubUsername,
+        status: status
+      },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -111,7 +137,11 @@ router.post('/login', async (req: Request, res: Response) => {
         id: userId,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        avatar_url: avatarUrl,
+        github_username: githubUsername,
+        status: status,
+        createdAt: (user as any).created_at || (user as any).createdAt
       }
     });
   } catch (err: any) {
@@ -138,12 +168,18 @@ router.get('/me', auth, async (req: Request, res: Response) => {
 
     const userId = (user as any).id || (user as any)._id;
     const userCreatedAt = (user as any).created_at || (user as any).createdAt;
+    const avatarUrl = (user as any).avatar_url || (user as any).avatarUrl || null;
+    const githubUsername = (user as any).github_username || (user as any).githubUsername || null;
+    const status = (user as any).status || 'Active';
 
     res.json({
       id: userId,
       name: user.name,
       email: user.email,
       role: user.role,
+      avatar_url: avatarUrl,
+      github_username: githubUsername,
+      status: status,
       createdAt: userCreatedAt
     });
   } catch (err: any) {

@@ -139,6 +139,9 @@ export const dbService = {
                         u.email.toLowerCase().includes(q) ||
                         u.role.toLowerCase().includes(q));
                 }
+                if (filter.product) {
+                    results = results.filter(u => u.product === filter.product);
+                }
                 return results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             }
             const { UserModel } = await import('../models/User.js');
@@ -149,6 +152,9 @@ export const dbService = {
                     { email: { $regex: filter.search, $options: 'i' } },
                     { role: { $regex: filter.search, $options: 'i' } }
                 ];
+            }
+            if (filter.product) {
+                query.product = filter.product;
             }
             return UserModel.find(query).sort({ createdAt: -1 });
         },
@@ -167,6 +173,7 @@ export const dbService = {
                     email: data.email || '',
                     password: data.password || '',
                     role: data.role || 'Owner',
+                    product: data.product || null,
                     createdAt: new Date().toISOString()
                 };
                 mockDB.users.push(newUser);

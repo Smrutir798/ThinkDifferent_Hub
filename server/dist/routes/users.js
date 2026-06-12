@@ -7,10 +7,12 @@ const router = Router();
 // @desc    Get all users in the collection (filtered by search)
 router.get('/', auth, async (req, res) => {
     try {
-        const { search } = req.query;
+        const { search, product } = req.query;
         const filters = {};
         if (search)
             filters.search = search;
+        if (product)
+            filters.product = product;
         const list = await dbService.users.find(filters);
         // Strip passwords before returning
         const safeList = list.map((u) => ({
@@ -18,6 +20,7 @@ router.get('/', auth, async (req, res) => {
             name: u.name,
             email: u.email,
             role: u.role,
+            product: u.product || null,
             createdAt: u.createdAt
         }));
         res.json(safeList);
@@ -29,7 +32,7 @@ router.get('/', auth, async (req, res) => {
 // @route   POST api/users
 // @desc    Add/register a new user
 router.post('/', auth, async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, product } = req.body;
     if (!name || !email || !password) {
         return res.status(400).json({ error: 'Missing required fields: name, email, password' });
     }
@@ -45,7 +48,8 @@ router.post('/', auth, async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role: role || 'admin'
+            role: role || 'admin',
+            product: product || null
         });
         // Create activity event log
         await dbService.activities.create(`Administrator registered new user account '${newUser.name}' (${newUser.role}) in the system database.`, 'system');
@@ -54,6 +58,7 @@ router.post('/', auth, async (req, res) => {
             name: newUser.name,
             email: newUser.email,
             role: newUser.role,
+            product: newUser.product || null,
             createdAt: newUser.createdAt
         });
     }
@@ -64,7 +69,7 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/users/:id
 // @desc    Update user details
 router.put('/:id', auth, async (req, res) => {
-    const { name, email, role } = req.body;
+    const { name, email, role, product } = req.body;
     const { id } = req.params;
     if (!name || !email || !role) {
         return res.status(400).json({ error: 'Missing required fields: name, email, role' });
@@ -81,7 +86,12 @@ router.put('/:id', auth, async (req, res) => {
                 return res.status(400).json({ error: 'User already exists with this email address' });
             }
         }
-        const updatedUser = await dbService.users.update(id, { name, email, role });
+        const updatedUser = await dbService.users.update(id, {
+            name,
+            email,
+            role,
+            product: product !== undefined ? product : user.product
+        });
         if (!updatedUser) {
             return res.status(404).json({ error: 'User not found' });
         }

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbService } from '../config/db.js';
+import { membersService, isSupabaseConfigured } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'thinkdifferent_os_secret_key_2026_super_secure_99';
@@ -14,28 +15,58 @@ router.post('/register', async (req, res) => {
     }
     try {
         // Check for existing user
-        const existingUser = await dbService.users.findByEmail(email);
+        const existingUser = isSupabaseConfigured
+            ? await membersService.findByEmail(email)
+            : await dbService.users.findByEmail(email);
         if (existingUser) {
             return res.status(400).json({ error: 'User already exists with this email' });
         }
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
         // Create user
-        const newUser = await dbService.users.create({
-            name,
-            email,
-            password: hashedPassword,
-            role: role || 'Owner',
-        });
+        let newUser;
+        if (isSupabaseConfigured) {
+            newUser = await membersService.create({
+                name,
+                email,
+                password: hashedPassword,
+                role: role || 'Owner',
+                status: 'Active'
+            });
+        }
+        else {
+            newUser = await dbService.users.create({
+                name,
+                email,
+                password: hashedPassword,
+                role: role || 'Owner',
+            });
+        }
+        const userId = newUser.id || newUser._id;
+        const avatarUrl = newUser.avatar_url || newUser.avatarUrl || null;
+        const githubUsername = newUser.github_username || newUser.githubUsername || null;
+        const status = newUser.status || 'Active';
         // Generate JWT token
-        const token = jwt.sign({ id: newUser._id, email: newUser.email, role: newUser.role, name: newUser.name }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({
+            id: userId,
+            email: newUser.email,
+            role: newUser.role,
+            name: newUser.name,
+            avatar_url: avatarUrl,
+            github_username: githubUsername,
+            status: status
+        }, JWT_SECRET, { expiresIn: '7d' });
         res.status(201).json({
             token,
             user: {
-                id: newUser._id,
+                id: userId,
                 name: newUser.name,
                 email: newUser.email,
-                role: newUser.role
+                role: newUser.role,
+                avatar_url: avatarUrl,
+                github_username: githubUsername,
+                status: status,
+                createdAt: newUser.created_at || newUser.createdAt
             }
         });
     }
@@ -51,7 +82,9 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Please enter all fields' });
     }
     try {
-        const user = await dbService.users.findByEmail(email);
+        const user = isSupabaseConfigured
+            ? await membersService.findByEmail(email)
+            : await dbService.users.findByEmail(email);
         if (!user) {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
@@ -60,15 +93,31 @@ router.post('/login', async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
+        const userId = user.id || user._id;
+        const avatarUrl = user.avatar_url || user.avatarUrl || null;
+        const githubUsername = user.github_username || user.githubUsername || null;
+        const status = user.status || 'Active';
         // Generate JWT token
-        const token = jwt.sign({ id: user._id, email: user.email, role: user.role, name: user.name }, JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({
+            id: userId,
+            email: user.email,
+            role: user.role,
+            name: user.name,
+            avatar_url: avatarUrl,
+            github_username: githubUsername,
+            status: status
+        }, JWT_SECRET, { expiresIn: '7d' });
         res.json({
             token,
             user: {
-                id: user._id,
+                id: userId,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                avatar_url: avatarUrl,
+                github_username: githubUsername,
+                status: status,
+                createdAt: user.created_at || user.createdAt
             }
         });
     }
@@ -84,16 +133,26 @@ router.get('/me', auth, async (req, res) => {
         if (!authReq.user) {
             return res.status(401).json({ error: 'Unauthorized' });
         }
-        const user = await dbService.users.findByEmail(authReq.user.email);
+        const user = isSupabaseConfigured
+            ? await membersService.findByEmail(authReq.user.email)
+            : await dbService.users.findByEmail(authReq.user.email);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
+        const userId = user.id || user._id;
+        const userCreatedAt = user.created_at || user.createdAt;
+        const avatarUrl = user.avatar_url || user.avatarUrl || null;
+        const githubUsername = user.github_username || user.githubUsername || null;
+        const status = user.status || 'Active';
         res.json({
-            id: user._id,
+            id: userId,
             name: user.name,
             email: user.email,
             role: user.role,
-            createdAt: user.createdAt
+            avatar_url: avatarUrl,
+            github_username: githubUsername,
+            status: status,
+            createdAt: userCreatedAt
         });
     }
     catch (err) {

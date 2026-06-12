@@ -7,6 +7,9 @@ export interface AuthRequest extends Request {
     email: string;
     role: string;
     name: string;
+    avatar_url?: string | null;
+    github_username?: string | null;
+    status?: string;
   };
 }
 
@@ -24,6 +27,9 @@ export const auth = (req: Request, res: Response, next: NextFunction) => {
       email: string;
       role: string;
       name: string;
+      avatar_url?: string | null;
+      github_username?: string | null;
+      status?: string;
     };
     
     (req as AuthRequest).user = decoded;
