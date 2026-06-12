@@ -86,6 +86,52 @@ const saveFallback = () => {
   }
 };
 
+// Seed Supabase if empty
+const seedSupabase = async () => {
+  try {
+    const existing = await querySupabaseREST('members?select=id&limit=1');
+    if (existing && existing.length === 0) {
+      console.log('Supabase members table is empty. Seeding members...');
+      loadFallback();
+      
+      const seedData = fallbackMembers.map(m => {
+        const { id, ...rest } = m;
+        // Keep ID if it's a valid UUID, otherwise let Supabase generate it
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        return isUUID ? m : rest;
+      });
+
+      if (seedData.length > 0) {
+        await querySupabaseREST('members', {
+          method: 'POST',
+          body: seedData,
+          preferHeader: 'return=minimal'
+        });
+        console.log(`Successfully seeded Supabase members table with ${seedData.length} records.`);
+      }
+    }
+  } catch (err: any) {
+    console.log('-------------------------------------------------------------');
+    console.log('WARNING: Could not access or seed the Supabase "members" table.');
+    console.log('Ensure you have created the "members" table in your Supabase SQL Editor:');
+    console.log(`
+CREATE TABLE members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  role TEXT NOT NULL,
+  status TEXT NOT NULL,
+  password TEXT,
+  avatar_url TEXT,
+  github_username TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+    `);
+    console.log('Error details:', err.message || err);
+    console.log('-------------------------------------------------------------');
+  }
+};
+
 // Initialize fallback if Supabase keys aren't found
 if (!isSupabaseConfigured) {
   console.log('-------------------------------------------------------------');
@@ -98,6 +144,7 @@ if (!isSupabaseConfigured) {
   console.log('-------------------------------------------------------------');
   console.log('SUCCESS: Supabase URL and Key detected. Initializing client.');
   console.log('-------------------------------------------------------------');
+  seedSupabase();
 }
 
 // REST call helper to query Supabase PostgREST endpoints directly
@@ -175,6 +222,25 @@ export const membersService = {
         );
       }
       return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+  },
+
+  findByEmail: async (email: string): Promise<IMember | null> => {
+    if (isSupabaseConfigured) {
+      try {
+        const data = await querySupabaseREST(`members?email=eq.${encodeURIComponent(email)}`);
+        if (data && data.length > 0) {
+          return data[0];
+        }
+        return null;
+      } catch (err) {
+        console.error('Supabase query error in findByEmail, loading local fallback JSON:', err);
+        loadFallback();
+        return fallbackMembers.find(m => m.email.toLowerCase() === email.toLowerCase()) || null;
+      }
+    } else {
+      loadFallback();
+      return fallbackMembers.find(m => m.email.toLowerCase() === email.toLowerCase()) || null;
     }
   },
 

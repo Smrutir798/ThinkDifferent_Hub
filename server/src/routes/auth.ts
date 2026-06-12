@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { dbService } from '../config/db.js';
+import { membersService, isSupabaseConfigured } from '../config/supabase.js';
 import { auth, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
@@ -18,7 +19,10 @@ router.post('/register', async (req: Request, res: Response) => {
 
   try {
     // Check for existing user
-    const existingUser = await dbService.users.findByEmail(email);
+    const existingUser = isSupabaseConfigured
+      ? await membersService.findByEmail(email)
+      : await dbService.users.findByEmail(email);
+
     if (existingUser) {
       return res.status(400).json({ error: 'User already exists with this email' });
     }
@@ -27,16 +31,29 @@ router.post('/register', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const newUser = await dbService.users.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || 'Owner',
-    });
+    let newUser;
+    if (isSupabaseConfigured) {
+      newUser = await membersService.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: role || 'Owner',
+        status: 'Active'
+      });
+    } else {
+      newUser = await dbService.users.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: role || 'Owner',
+      });
+    }
+
+    const userId = (newUser as any).id || (newUser as any)._id;
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: newUser._id, email: newUser.email, role: newUser.role, name: newUser.name },
+      { id: userId, email: newUser.email, role: newUser.role, name: newUser.name },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -44,7 +61,7 @@ router.post('/register', async (req: Request, res: Response) => {
     res.status(201).json({
       token,
       user: {
-        id: newUser._id,
+        id: userId,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role
@@ -65,7 +82,10 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await dbService.users.findByEmail(email);
+    const user = isSupabaseConfigured
+      ? await membersService.findByEmail(email)
+      : await dbService.users.findByEmail(email);
+
     if (!user) {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
@@ -76,9 +96,11 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Invalid credentials' });
     }
 
+    const userId = (user as any).id || (user as any)._id;
+
     // Generate JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role, name: user.name },
+      { id: userId, email: user.email, role: user.role, name: user.name },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -86,7 +108,7 @@ router.post('/login', async (req: Request, res: Response) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: userId,
         name: user.name,
         email: user.email,
         role: user.role
@@ -106,17 +128,23 @@ router.get('/me', auth, async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const user = await dbService.users.findByEmail(authReq.user.email);
+    const user = isSupabaseConfigured
+      ? await membersService.findByEmail(authReq.user.email)
+      : await dbService.users.findByEmail(authReq.user.email);
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    const userId = (user as any).id || (user as any)._id;
+    const userCreatedAt = (user as any).created_at || (user as any).createdAt;
+
     res.json({
-      id: user._id,
+      id: userId,
       name: user.name,
       email: user.email,
       role: user.role,
-      createdAt: user.createdAt
+      createdAt: userCreatedAt
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to retrieve user: ' + err.message });
