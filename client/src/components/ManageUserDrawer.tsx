@@ -137,10 +137,6 @@ export default function ManageUserDrawer({
       return;
     }
 
-    if (!confirm(`Are you absolutely sure you want to delete user account "${user.name}"? This action is irreversible.`)) {
-      return;
-    }
-
     setDeleteLoading(true);
     setError('');
 

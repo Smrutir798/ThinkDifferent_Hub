@@ -250,7 +250,6 @@ export default function WorkspaceView({ token, onOpenOnboarding, refreshTrigger 
       setDrawerError(`Please type "${selectedMember.name}" to confirm deletion`);
       return;
     }
-    if (!confirm(`Are you absolutely sure you want to remove member "${selectedMember.name}"?`)) return;
 
     setDrawerLoading(true);
     setDrawerError('');
@@ -393,6 +392,7 @@ export default function WorkspaceView({ token, onOpenOnboarding, refreshTrigger 
               <th>Email Address</th>
               <th>Role Privilege</th>
               <th>Product</th>
+              {activeProduct === 'ahhar' && <th>Subscription Plan</th>}
               <th>{activeProduct === 'hub' ? 'Joined Date' : 'Registration Date'}</th>
               <th>Actions</th>
             </tr>
@@ -400,13 +400,13 @@ export default function WorkspaceView({ token, onOpenOnboarding, refreshTrigger 
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                <td colSpan={activeProduct === 'ahhar' ? 7 : 6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
                   {activeProduct === 'hub' ? 'Syncing members database...' : 'Syncing users database...'}
                 </td>
               </tr>
             ) : restaurants.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
+                <td colSpan={activeProduct === 'ahhar' ? 7 : 6} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}>
                   {activeProduct === 'hub' ? 'No member entries found.' : 'No user entries found.'}
                 </td>
               </tr>
@@ -499,6 +499,22 @@ export default function WorkspaceView({ token, onOpenOnboarding, refreshTrigger 
                       )}
                     </div>
                   </td>
+                  {activeProduct === 'ahhar' && (
+                    <td>
+                      {u.subscription && u.subscription.plan ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className={`badge ${u.subscription.status === 'active' ? 'badge-active' : 'badge-pending'}`} style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', width: 'fit-content' }}>
+                            {u.subscription.plan.toUpperCase()}
+                          </span>
+                          <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)' }}>
+                            Valid till {formatDate(u.subscription.validUntil)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '12px' }}>—</span>
+                      )}
+                    </td>
+                  )}
                   <td style={{ color: 'var(--text-secondary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Calendar size={12} />
