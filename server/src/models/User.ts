@@ -25,6 +25,13 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  subscription: {
+    plan: String,
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
+    status: String,
+    validUntil: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

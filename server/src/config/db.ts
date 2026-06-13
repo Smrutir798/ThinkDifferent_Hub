@@ -2,6 +2,11 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import dns from 'dns';
+
+// Fix for Node.js DNS resolution issues on Windows/ISP
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
 
 // Configuration
 const FALLBACK_DIR = path.resolve('data');

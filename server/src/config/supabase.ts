@@ -132,21 +132,6 @@ CREATE TABLE members (
   }
 };
 
-// Initialize fallback if Supabase keys aren't found
-if (!isSupabaseConfigured) {
-  console.log('-------------------------------------------------------------');
-  console.log('WARNING: Supabase connection keys are not configured in server/.env');
-  console.log('Initializing local JSON file fallback database for members:');
-  console.log(`Path: ${FALLBACK_FILE}`);
-  console.log('-------------------------------------------------------------');
-  loadFallback();
-} else {
-  console.log('-------------------------------------------------------------');
-  console.log('SUCCESS: Supabase URL and Key detected. Initializing client.');
-  console.log('-------------------------------------------------------------');
-  seedSupabase();
-}
-
 // REST call helper to query Supabase PostgREST endpoints directly
 const querySupabaseREST = async (
   endpoint: string,
@@ -193,6 +178,21 @@ const querySupabaseREST = async (
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 };
+
+// Initialize fallback if Supabase keys aren't found
+if (!isSupabaseConfigured) {
+  console.log('-------------------------------------------------------------');
+  console.log('WARNING: Supabase connection keys are not configured in server/.env');
+  console.log('Initializing local JSON file fallback database for members:');
+  console.log(`Path: ${FALLBACK_FILE}`);
+  console.log('-------------------------------------------------------------');
+  loadFallback();
+} else {
+  console.log('-------------------------------------------------------------');
+  console.log('SUCCESS: Supabase URL and Key detected. Initializing client.');
+  console.log('-------------------------------------------------------------');
+  seedSupabase();
+}
 
 export const membersService = {
   find: async (search?: string): Promise<IMember[]> => {

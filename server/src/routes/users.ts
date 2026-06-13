@@ -23,6 +23,7 @@ router.get('/', auth, async (req: Request, res: Response) => {
       email: u.email,
       role: u.role,
       product: u.product || null,
+      subscription: u.subscription || null,
       createdAt: u.createdAt
     }));
 

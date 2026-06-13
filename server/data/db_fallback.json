@@ -1,0 +1,44 @@
+{
+  "users": [
+    {
+      "_id": "user_1",
+      "name": "Steve Jobs",
+      "email": "owner@thinkdifferent.com",
+      "password": "$2a$10$8GISCCaRZd6r4lo82lTGGu53mJa4/62mk7rtFah4CEyaRkCzSNx06",
+      "role": "Owner",
+      "createdAt": "2026-06-13T15:44:08.971Z"
+    }
+  ],
+  "products": [
+    {
+      "_id": "prod_1",
+      "name": "Ahhar.AI",
+      "key": "ahhar",
+      "status": "Active",
+      "description": "Restaurant Operating System and automation network.",
+      "createdAt": "2026-06-13T15:44:08.973Z"
+    },
+    {
+      "_id": "prod_2",
+      "name": "ThinkDifferent Hub",
+      "key": "hub",
+      "status": "Active",
+      "description": "Subnet manager and developer metrics aggregator.",
+      "createdAt": "2026-06-13T15:44:08.973Z"
+    }
+  ],
+  "activities": [
+    {
+      "_id": "act_1",
+      "text": "ThinkDifferent  iHub initialized in strict high-contrast B&W mode.",
+      "type": "system",
+      "createdAt": "2026-06-13T13:44:08.973Z"
+    },
+    {
+      "_id": "act_2",
+      "text": "Cluster validation completed: active backend sandboxes status OK.",
+      "type": "system",
+      "createdAt": "2026-06-13T14:14:08.973Z"
+    }
+  ]
+}
